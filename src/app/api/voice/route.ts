@@ -1,64 +1,65 @@
-// src/app/api/voice/route.ts
+// app/api/voice/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-// ElevenLabs API endpoint
-const ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/text-to-speech";
-
-// Default voice ID (Rachel - professional female voice)
-// You can get other voice IDs from: https://api.elevenlabs.io/v1/voices
-const DEFAULT_VOICE_ID = "SAz9YHcvj6GT2YYXdXww"; // Claire voice (professional male)
+const HUME_TTS_URL = "https://api.hume.ai/v0/tts";
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, voice_id } = await request.json();
+    const { text, description } = await request.json();
 
     if (!text) {
       return NextResponse.json({ error: "Text is required" }, { status: 400 });
     }
 
-    const apiKey = process.env.ELEVENLABS_API_KEY;
+    const apiKey = process.env.HUME_API_KEY;
 
     if (!apiKey) {
-      console.error("❌ ELEVENLABS_API_KEY not set in environment");
+      console.error("❌ HUME_API_KEY not configured");
       return NextResponse.json(
-        { error: "ElevenLabs API key not configured", fallback: true },
+        { error: "Voice API not configured", fallback: true },
         { status: 503 },
       );
     }
 
-    console.log("🎤 Generating voice for:", text.substring(0, 50) + "...");
+    console.log("🎤 Generating voice:", text.substring(0, 50) + "...");
 
-    const voiceId = voice_id || DEFAULT_VOICE_ID;
-    const url = `${ELEVENLABS_API_URL}/${voiceId}`;
+    // Hume AI REST API payload (not SDK)
+    // Using simple format without voice specification (let Hume generate)
+    const payload = {
+      utterances: [
+        {
+          text: text,
+          description:
+            description ||
+            "Professional, clear, and friendly voice suitable for business telephony",
+        },
+      ],
+      format: {
+        type: "mp3",
+      },
+      num_generations: 1,
+      strip_headers: false, // We want the complete audio file with headers
+    };
 
-    const response = await fetch(url, {
+    console.log("📦 Request:", JSON.stringify(payload, null, 2));
+
+    const response = await fetch(HUME_TTS_URL, {
       method: "POST",
       headers: {
-        Accept: "audio/mpeg",
+        "X-Hume-Api-Key": apiKey,
         "Content-Type": "application/json",
-        "xi-api-key": apiKey,
       },
-      body: JSON.stringify({
-        text,
-        model_id: "eleven_multilingual_v2", // Current best model
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          style: 0.0,
-          use_speaker_boost: true,
-        },
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("❌ ElevenLabs API error:", {
+      console.error("❌ Hume API error:", {
         status: response.status,
         statusText: response.statusText,
         body: errorText,
       });
 
-      // Return error with fallback flag
       return NextResponse.json(
         {
           error: `Voice generation failed: ${response.statusText}`,
@@ -69,14 +70,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const audioBuffer = await response.arrayBuffer();
-    console.log("✅ Voice generated:", audioBuffer.byteLength, "bytes");
+    const data = await response.json();
+    console.log("📊 Response structure:", Object.keys(data));
+
+    // Extract audio from response
+    if (!data.generations || data.generations.length === 0) {
+      throw new Error("No generations in response");
+    }
+
+    const generation = data.generations[0];
+    const base64Audio = generation.audio;
+
+    if (!base64Audio) {
+      console.error("❌ No audio found. Generation:", generation);
+      throw new Error("No audio in response");
+    }
+
+    // Convert base64 to buffer
+    const audioBuffer = Buffer.from(base64Audio, "base64");
+
+    console.log("✅ Generated:", audioBuffer.byteLength, "bytes");
+    console.log("🆔 Generation ID:", generation.generation_id);
+    console.log("⏱️  Duration:", generation.duration, "seconds");
 
     return new NextResponse(audioBuffer, {
       headers: {
         "Content-Type": "audio/mpeg",
         "Content-Length": audioBuffer.byteLength.toString(),
-        "Cache-Control": "public, max-age=31536000", // Cache for 1 year
+        "Cache-Control": "public, max-age=31536000",
+        "X-Generation-Id": generation.generation_id || "",
       },
     });
   } catch (error) {

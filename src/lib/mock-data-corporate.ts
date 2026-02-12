@@ -260,17 +260,14 @@ export const MOCK_DIAL_PLAN_CORPORATE = {
     {
       type: "welcome",
       text: "Thank you for calling Smith & Associates. Please listen carefully as our menu options have changed. Press 1 for Legal, 2 for Administration, or 0 for Reception.",
-      duration: "8s",
     },
     {
       type: "ivr_timeout",
       text: "We did not receive a valid input. Please try again.",
-      duration: "4s",
     },
     {
       type: "voicemail",
       text: "You have reached Smith & Associates outside of business hours. We are open Monday to Friday from 8 AM to 5 PM. Please leave a message.",
-      duration: "10s",
     },
   ],
   implementationSteps: [

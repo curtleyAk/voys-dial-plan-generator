@@ -147,12 +147,12 @@ export const MOCK_DIAL_PLAN = {
   voiceScripts: [
     {
       type: "welcome",
-      text: "Thank you for calling Bella's Pizza. Please hold while we connect you.",
+      text: "Thank you for calling Bella's Pizza. Please hold while we connect you to our team.",
       duration: "5s",
     },
     {
       type: "voicemail",
-      text: "You've reached Bella's Pizza. We are currently closed. Our hours are 11am to 9pm daily. Please leave a message.",
+      text: "You've reached Bella's Pizza. We are currently closed. Our hours are 11am to 9pm daily. Please leave a message and we'll call you back.",
       duration: "12s",
     },
   ],

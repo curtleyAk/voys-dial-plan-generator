@@ -204,12 +204,11 @@ export const MOCK_DIAL_PLAN_MEDICAL = {
     {
       type: "welcome",
       text: "Thank you for calling City Medical. If this is a medical emergency, please hang up and dial 112.",
-      duration: "8s",
     },
     {
       type: "voicemail",
       text: "You have reached City Medical after hours. Please leave a detailed message or contact our emergency line.",
-      duration: "10s",
+      duration: "12s",
     },
   ],
   implementationSteps: [
