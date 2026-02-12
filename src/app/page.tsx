@@ -161,11 +161,11 @@ export default function Home() {
                             ))}
                           </div>
 
-                          {step.helpUrl && (
+                          {/* {step.helpUrl && (
                             <p className="text-slate-500 text-xs mt-3 mb-1">
                               Documentation: {step.helpUrl}
                             </p>
-                          )}
+                          )} */}
 
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-xs font-medium px-2 py-1 bg-slate-100 rounded text-slate-600 border border-slate-200">
@@ -178,7 +178,7 @@ export default function Home() {
                               rel="noreferrer"
                               className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
                             >
-                              Open Admin Panel{" "}
+                              Open Feature in Freedom{" "}
                               <ArrowLeft className="w-3 h-3 rotate-180" />
                             </a>
                           </div>
