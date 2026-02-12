@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 // n8n webhook URL
 const N8N_WEBHOOK_URL =
-  "https://n8n.eu-staging.holodeck.voys.nl/webhook-test/49ebcf4a-a934-4a5b-abe0-a0ad2fb1a097";
+  "https://n8n.eu-staging.holodeck.voys.nl/webhook/4a8c1ce5-59fa-4cb3-9ab0-acc2f9859ad0";
 
 export async function POST(request: NextRequest) {
   try {
