@@ -120,47 +120,64 @@ export default function Home() {
                 <h2 className="text-xl font-bold mb-6 text-slate-800">
                   Setup Guide
                 </h2>
-                {(dialPlanData?.implementationSteps || []).map((step: any) => (
-                  <div className="space-y-0">
-                    {dialPlanData.implementationSteps?.map(
-                      (step: any, idx: number) => (
-                        <div
-                          key={step.step}
-                          className="flex gap-4 pb-8 relative last:pb-0"
-                        >
-                          {/* Timeline Line */}
-                          {idx !==
-                            dialPlanData.implementationSteps.length - 1 && (
-                            <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-slate-200" />
-                          )}
 
-                          <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm z-10">
-                            {step.step}
-                          </div>
-                          <div className="pt-1">
-                            <h3 className="font-semibold text-lg text-slate-900">
-                              {step.title}
-                            </h3>
-                            <p className="text-slate-600 mt-1 mb-2">
-                              {step.description}
-                            </p>
-                            <div className="flex items-center gap-3">
-                              <span className="text-xs font-medium px-2 py-1 bg-slate-100 rounded text-slate-600">
-                                ⏱ {step.estimatedTime}
-                              </span>
-                              <a
-                                href="#"
-                                className="text-sm text-blue-600 hover:underline"
+                <div className="space-y-0">
+                  {dialPlanData.implementationSteps?.map(
+                    (step: any, idx: number) => (
+                      <div
+                        key={step.step}
+                        className="flex gap-4 pb-8 relative last:pb-0"
+                      >
+                        {/* Timeline Line */}
+                        {idx !==
+                          dialPlanData.implementationSteps.length - 1 && (
+                          <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-slate-200" />
+                        )}
+
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm z-10">
+                          {step.step}
+                        </div>
+                        <div className="pt-1">
+                          <h3 className="font-semibold text-lg text-slate-900">
+                            {step.title}
+                          </h3>
+                          <p className="text-slate-600 mt-1 mb-2">
+                            {step.description}
+                          </p>
+                          {/* UPDATED: Vertical Actions List */}
+                          <div className="bg-slate-50 rounded-md p-4 border border-slate-100 space-y-2">
+                            {step.actions.map((action: string, i: number) => (
+                              <div
+                                key={i}
+                                className="flex items-start gap-2 text-sm text-slate-700"
                               >
-                                Open Admin Panel →
-                              </a>
-                            </div>
+                                <span className="text-green-500 font-bold mt-0.5">
+                                  o
+                                </span>
+                                <span>{action}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-slate-600 mt-1 mb-2">
+                            {step.helpUrl}
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-medium px-2 py-1 bg-slate-100 rounded text-slate-600">
+                              ⏱ {step.estimatedTime}
+                            </span>
+
+                            <a
+                              href="#"
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              Open Admin Panel →
+                            </a>
                           </div>
                         </div>
-                      ),
-                    )}
-                  </div>
-                ))}
+                      </div>
+                    ),
+                  )}
+                </div>
               </div>
             </div>
           </div>
