@@ -202,10 +202,6 @@ npm run lint            # Check code style
 # 1. Fill form with test business
 # 2. Click "Generate My Dial Plan"
 # 3. Check: JSON in console? Flowchart renders? Features listed?
-
-# Environment Variables Needed
-ANTHROPIC_API_KEY=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
-ELEVENLABS_API_KEY=sk_6b4103cec29b269e0baaf9d31c6000fd849426e830e5ad45
 ```
 
 ## Success Metrics (Demo Ready)
