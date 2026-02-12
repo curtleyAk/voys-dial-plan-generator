@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
+    "@elevenlabs/elevenlabs-js": "^2.35.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dagre": "^0.8.5",
+    "dotenv": "^17.2.4",
     "lucide-react": "^0.563.0",
     "mermaid": "^11.12.2",
     "next": "16.1.6",
