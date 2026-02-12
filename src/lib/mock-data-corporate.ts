@@ -7,174 +7,148 @@ export const MOCK_DIAL_PLAN_CORPORATE = {
     hours: "08:00-17:00",
     timezone: "Africa/Johannesburg",
   },
+  // This JSON structure is designed for libraries like React Flow / xyflow
   dialPlan: {
     nodes: [
       {
         id: "entry",
         type: "entryPoint",
         label: "Call Arrives",
-        simpleLabel: "Someone calls",
+        data: { label: "Someone calls", description: "Main Line" },
+        position: { x: 250, y: 0 }, // Example coordinates for UI rendering
       },
       {
         id: "filter",
         type: "filter",
         label: "VIP/Emergency Filter",
-        simpleLabel: "Is it a VIP?",
-        config: { filterType: "whitelist" },
+        data: { label: "Is it a VIP?", filterType: "whitelist" },
+        position: { x: 250, y: 100 },
       },
       {
         id: "vip_user",
         type: "user",
         label: "Senior Partner Mobile",
-        simpleLabel: "Ring Partner directly",
+        data: { label: "Ring Partner directly", extension: "601" },
+        position: { x: 50, y: 200 },
       },
       {
         id: "moh_setup",
         type: "musicOnHold",
         label: "Set Hold Music",
-        simpleLabel: "Set music",
+        data: { label: "Set music", file: "classical_soothing.mp3" },
+        position: { x: 450, y: 200 },
       },
       {
         id: "time_check",
         type: "timeCondition",
         label: "Opening Hours Check",
-        simpleLabel: "Are we open?",
-        config: { openHours: "08:00-17:00" },
+        data: { label: "Are we open?", hours: "08:00-17:00" },
+        position: { x: 450, y: 300 },
       },
       {
         id: "welcome",
         type: "announcement",
         label: "Welcome Message",
-        simpleLabel: "Play greeting",
+        data: {
+          label: "Play greeting",
+          text: "Welcome to Smith & Associates...",
+        },
+        position: { x: 300, y: 400 },
       },
       {
         id: "ivr_menu",
         type: "ivr",
         label: "Main Menu",
-        simpleLabel: "IVR Menu",
-        config: { options: ["1", "2", "0"] },
+        data: { label: "IVR Menu", options: ["1", "2", "0"] },
+        position: { x: 300, y: 500 },
       },
       {
         id: "var_announce_1",
         type: "variableAnnouncement",
         label: "Announce: Legal",
-        simpleLabel: "Whisper 'Legal'",
+        data: { label: "Whisper 'Legal'", text: "Connecting to Legal" },
+        position: { x: 100, y: 600 },
       },
       {
         id: "grp_legal",
         type: "callGroup",
         label: "Legal Dept Group",
-        simpleLabel: "Ring Legal Dept",
+        data: { label: "Ring Legal Dept", strategy: "simultaneous" },
+        position: { x: 100, y: 700 },
       },
       {
         id: "grp_admin",
         type: "callGroup",
         label: "Admin Dept Group",
-        simpleLabel: "Ring Admin Dept",
+        data: { label: "Ring Admin Dept", strategy: "simultaneous" },
+        position: { x: 300, y: 700 },
       },
       {
         id: "user_reception",
         type: "user",
         label: "Receptionist",
-        simpleLabel: "Ring Reception",
+        data: { label: "Ring Reception", extension: "605" },
+        position: { x: 500, y: 600 },
       },
       {
         id: "voicemail",
         type: "voicemail",
         label: "General Voicemail",
-        simpleLabel: "Leave message",
+        data: { label: "Leave message", email: "info@smithlaw.co.za" },
+        position: { x: 600, y: 400 }, // Placed off to the side as a common sink
       },
     ],
     edges: [
-      { from: "entry", to: "filter", condition: null },
+      { id: "e1", source: "entry", target: "filter", label: "Start" },
+      { id: "e2", source: "filter", target: "vip_user", label: "VIP Match" },
       {
-        from: "filter",
-        to: "vip_user",
-        condition: "match",
-        label: "VIP Number",
+        id: "e3",
+        source: "filter",
+        target: "moh_setup",
+        label: "Standard Call",
       },
-      {
-        from: "filter",
-        to: "moh_setup",
-        condition: "no_match",
-        label: "Standard",
-      },
-      { from: "moh_setup", to: "time_check", condition: null },
-      { from: "time_check", to: "welcome", condition: "open", label: "Yes" },
-      { from: "time_check", to: "voicemail", condition: "closed", label: "No" },
-      { from: "welcome", to: "ivr_menu", condition: null },
+      { id: "e4", source: "moh_setup", target: "time_check" },
+      { id: "e5", source: "time_check", target: "welcome", label: "Open" },
+      { id: "e6", source: "time_check", target: "voicemail", label: "Closed" },
+      { id: "e7", source: "welcome", target: "ivr_menu" },
 
-      // IVR Option 1 flow
+      // IVR Paths
       {
-        from: "ivr_menu",
-        to: "var_announce_1",
-        condition: "option_1",
-        label: "Press 1",
+        id: "e8",
+        source: "ivr_menu",
+        target: "var_announce_1",
+        label: "Press 1 (Legal)",
       },
-      { from: "var_announce_1", to: "grp_legal", condition: null },
+      { id: "e9", source: "var_announce_1", target: "grp_legal" },
       {
-        from: "grp_legal",
-        to: "voicemail",
-        condition: "no_answer",
+        id: "e10",
+        source: "ivr_menu",
+        target: "grp_admin",
+        label: "Press 2 (Admin)",
+      },
+      {
+        id: "e11",
+        source: "ivr_menu",
+        target: "user_reception",
+        label: "Press 0 (Reception)",
+      },
+
+      // Fallbacks to Voicemail
+      {
+        id: "e12",
+        source: "grp_legal",
+        target: "voicemail",
         label: "No Answer",
       },
-
-      // IVR Option 2 flow
       {
-        from: "ivr_menu",
-        to: "grp_admin",
-        condition: "option_2",
-        label: "Press 2",
-      },
-      {
-        from: "grp_admin",
-        to: "voicemail",
-        condition: "no_answer",
+        id: "e13",
+        source: "grp_admin",
+        target: "voicemail",
         label: "No Answer",
       },
-
-      // IVR Option 0 flow
-      {
-        from: "ivr_menu",
-        to: "user_reception",
-        condition: "option_0",
-        label: "Press 0",
-      },
-
-      // Fallbacks
-      {
-        from: "ivr_menu",
-        to: "voicemail",
-        condition: "timeout",
-        label: "Timeout",
-      },
+      { id: "e14", source: "ivr_menu", target: "voicemail", label: "Timeout" },
     ],
   },
-  mermaidSimple: `graph TD
-    entry["Someone calls"] --> filter{"Is it a VIP?"}
-    filter -->|"Yes"| vip_user["Ring Partner directly"]
-    filter -->|"No"| time_check{"Are we open?"}
-    time_check -->|"No"| voicemail["Leave message"]
-    time_check -->|"Yes"| welcome["Play greeting"]
-    welcome --> ivr_menu{"IVR Menu"}
-    ivr_menu -->|"Press 1"| grp_legal["Ring Legal Dept"]
-    ivr_menu -->|"Press 2"| grp_admin["Ring Admin Dept"]
-    ivr_menu -->|"Press 0"| user_reception["Ring Reception"]
-    grp_legal -->|"No Answer"| voicemail`,
-  mermaidTechnical: `graph TD
-    entry["Call Arrives"] --> filter["Filter (VIP Check)"]
-    filter -->|"Match"| vip_user["User: Senior Partner"]
-    filter -->|"No Match"| moh["Set Hold Music"]
-    moh --> time_check["Time Check (08:00-17:00)"]
-    time_check -->|"Closed"| voicemail["Voicemail"]
-    time_check -->|"Open"| welcome["Message: Welcome"]
-    welcome --> ivr["IVR: Main Menu"]
-    ivr -->|"Opt 1"| var_ann["Var. Caller Name"]
-    var_ann --> grp_legal["Call Group: Legal"]
-    ivr -->|"Opt 2"| grp_admin["Call Group: Admin"]
-    ivr -->|"Opt 0"| user_recep["User: Reception"]
-    grp_legal -->|"Timeout"| voicemail
-    grp_admin -->|"Timeout"| voicemail`,
   features: [
     {
       id: "voip_account",

@@ -13,55 +13,50 @@ import {
   MessageSquare,
   ArrowRight,
   AlertCircle,
-  ChevronRight,
+  Filter,
+  User,
+  Mic,
 } from "lucide-react";
 
 interface Props {
-  planData: any;
+  planData: any; // Expects the full dialPlan object { nodes: [], edges: [] }
 }
 
 const TYPE_CONFIG: Record<string, any> = {
   entryPoint: {
     icon: Phone,
-    label: "Inbound call",
+    label: "Inbound Call",
     color: "text-blue-600",
     bg: "bg-blue-50",
     border: "border-blue-200",
   },
+  filter: {
+    icon: Filter,
+    label: "Smart Filter",
+    color: "text-indigo-600",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+  },
+  user: {
+    icon: User,
+    label: "User",
+    color: "text-green-600",
+    bg: "bg-green-50",
+    border: "border-green-200",
+  },
+  musicOnHold: {
+    icon: Music,
+    label: "Music on Hold",
+    color: "text-pink-600",
+    bg: "bg-pink-50",
+    border: "border-pink-200",
+  },
   timeCondition: {
     icon: Clock,
-    label: "Opening hours",
+    label: "Opening Hours",
     color: "text-slate-700",
     bg: "bg-white",
     border: "border-slate-200",
-  },
-  callGroup: {
-    icon: Users,
-    label: "Call group",
-    color: "text-slate-700",
-    bg: "bg-white",
-    border: "border-slate-200",
-  },
-  voicemail: {
-    icon: Voicemail,
-    label: "Voicemail",
-    color: "text-slate-700",
-    bg: "bg-white",
-    border: "border-slate-200",
-  },
-  queue: {
-    icon: Music,
-    label: "Queue",
-    color: "text-purple-600",
-    bg: "bg-purple-50",
-    border: "border-purple-200",
-  },
-  ivr: {
-    icon: GitFork,
-    label: "IVR menu",
-    color: "text-orange-600",
-    bg: "bg-orange-50",
-    border: "border-orange-200",
   },
   announcement: {
     icon: MessageSquare,
@@ -70,138 +65,182 @@ const TYPE_CONFIG: Record<string, any> = {
     bg: "bg-white",
     border: "border-slate-200",
   },
-  external: {
-    icon: ArrowRight,
-    label: "Fixed destination",
-    color: "text-green-600",
-    bg: "bg-green-50",
-    border: "border-green-200",
+  variableAnnouncement: {
+    icon: Mic,
+    label: "Var. Announcement",
+    color: "text-slate-700",
+    bg: "bg-white",
+    border: "border-slate-200",
+  },
+  ivr: {
+    icon: GitFork,
+    label: "IVR Menu",
+    color: "text-orange-600",
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+  },
+  callGroup: {
+    icon: Users,
+    label: "Call Group",
+    color: "text-emerald-600",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+  },
+  voicemail: {
+    icon: Voicemail,
+    label: "Voicemail",
+    color: "text-slate-500",
+    bg: "bg-slate-50",
+    border: "border-slate-200",
   },
 };
 
 export default function VoysAdminView({ planData }: Props) {
-  const nodes = planData?.dialPlan?.nodes || [];
-  const edges = planData?.dialPlan?.edges || [];
+  // Safely access nodes/edges from the passed prop
+  const nodes = planData?.nodes || [];
+  const edges = planData?.edges || [];
 
-  // Helper to get node data
   const getNode = (id: string) => nodes.find((n: any) => n.id === id);
 
-  // Recursive component to render the tree
+  // Recursive Tree Component
   const NodeTree = ({
     nodeId,
     stepNumber,
     visited = new Set(),
-    depth = 0,
   }: {
     nodeId: string;
     stepNumber: string;
     visited?: Set<string>;
-    depth?: number;
   }) => {
     const node = getNode(nodeId);
     if (!node) return null;
 
-    // Cycle detection
+    // Detect loops
     if (visited.has(nodeId)) {
       return (
         <div className="ml-8 mt-2 p-2 border border-dashed border-slate-300 rounded text-xs text-slate-400 flex items-center gap-2">
-          <AlertCircle className="w-3 h-3" /> Re-enters flow at step{" "}
-          {node.label}
+          <AlertCircle className="w-3 h-3" /> Re-enters flow at {node.label}
         </div>
       );
     }
     const newVisited = new Set(visited).add(nodeId);
 
-    // Find children (outgoing edges)
-    const childrenEdges = edges.filter((e: any) => e.from === nodeId);
+    // Find outgoing edges (children)
+    // Note: React Flow uses 'source' and 'target'
+    const childrenEdges = edges.filter((e: any) => e.source === nodeId);
+
+    // Get config or default
     const config = TYPE_CONFIG[node.type] || {
-      icon: Phone,
-      label: "Step",
+      icon: ArrowRight,
+      label: node.type,
       color: "text-gray-500",
       bg: "bg-gray-50",
       border: "border-gray-200",
     };
     const Icon = config.icon;
 
+    // Determine display labels from data object
+    const mainLabel = node.label || config.label;
+    const subLabel = node.data?.label || node.data?.description || "";
+
     return (
       <div className="relative">
-        {/* The Node Card */}
+        {/* Node Card */}
         <div
-          className={`flex items-center justify-between ${config.bg} p-3 rounded border ${config.border} shadow-sm group hover:border-blue-400 transition-colors mb-2 relative`}
+          className={`flex items-start justify-between ${config.bg} p-3 rounded border ${config.border} shadow-sm mb-3 relative`}
         >
-          <div className="flex items-center gap-3 flex-1">
-            <div className={`p-1.5 rounded ${config.bg} ${config.color}`}>
+          <div className="flex items-start gap-3 flex-1">
+            <div
+              className={`p-1.5 mt-0.5 rounded ${config.bg} ${config.color} border border-slate-100`}
+            >
               <Icon className="w-4 h-4" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <span className={`font-semibold text-sm ${config.color}`}>
-                  {config.label}
+                  {mainLabel}
                 </span>
-                {node.config?.number && (
-                  <Badge variant="outline" className="text-xs">
-                    {node.config.number}
+                {node.data?.extension && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] h-5 px-1.5 bg-white"
+                  >
+                    Ext {node.data.extension}
                   </Badge>
                 )}
               </div>
-              <div className="text-sm text-slate-600 mt-0.5">
-                {node.config?.description || node.simpleLabel || node.label}
-              </div>
-              {node.config?.timeout && (
-                <div className="flex items-center text-xs text-slate-400 gap-1 mt-1">
-                  <Clock className="w-3 h-3" /> {node.config.timeout}
+
+              {subLabel && (
+                <div className="text-sm text-slate-600 mt-0.5 leading-snug">
+                  {subLabel}
+                </div>
+              )}
+
+              {/* Specific metadata rendering */}
+              {node.data?.email && (
+                <div className="text-xs text-slate-400 mt-1">
+                  📧 {node.data.email}
+                </div>
+              )}
+              {node.data?.options && (
+                <div className="flex gap-1 mt-1.5">
+                  {node.data.options.map((opt: string) => (
+                    <Badge
+                      key={opt}
+                      variant="secondary"
+                      className="text-[10px] h-4 px-1"
+                    >
+                      {opt}
+                    </Badge>
+                  ))}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Play button for audio nodes */}
-            {["announcement", "voicemail", "ivr"].includes(node.type) && (
-              <button className="p-1 hover:bg-slate-100 rounded">
+          <div className="flex items-center gap-2 pl-2">
+            {/* Play button for audio types */}
+            {["announcement", "voicemail", "ivr", "musicOnHold"].includes(
+              node.type,
+            ) && (
+              <button className="p-1 hover:bg-slate-200/50 rounded transition-colors">
                 <PlayCircle className="w-4 h-4 text-slate-400 hover:text-blue-600" />
               </button>
             )}
             <Badge
-              variant="secondary"
-              className="bg-slate-100 text-slate-600 font-mono text-xs"
+              variant="outline"
+              className="bg-white/50 text-slate-500 font-mono text-[10px] border-slate-200"
             >
-              {stepNumber}
+              Step {stepNumber}
             </Badge>
           </div>
         </div>
 
-        {/* Children Container */}
+        {/* Render Children */}
         {childrenEdges.length > 0 && (
-          <div className={`${depth > 0 ? "ml-8" : "ml-4"} space-y-2`}>
+          <div className="ml-5 border-l-2 border-slate-100 pl-4 space-y-2 pb-2">
             {childrenEdges.map((edge: any, index: number) => {
-              // Calculate hierarchical numbering (e.g., 1.1, 1.2, 1.1.1)
               const childStepNumber = `${stepNumber}.${index + 1}`;
-
               return (
-                <div
-                  key={`${edge.from}-${edge.to}-${index}`}
-                  className="relative"
-                >
-                  {/* Connection Label Badge */}
+                <div key={edge.id} className="relative pt-1">
+                  {/* Connection Line & Label */}
+                  <div className="absolute -left-4 top-5 w-4 h-px bg-slate-300"></div>
+
                   {edge.label && (
-                    <div className="flex items-center gap-2 mb-1 ml-4">
-                      <div className="h-px w-4 bg-slate-300"></div>
-                      <Badge
-                        variant="outline"
-                        className="text-xs bg-slate-50 text-slate-600 border-slate-300"
-                      >
+                    <div className="absolute -left-2 -top-2 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 z-10">
+                      <span className="text-[10px] font-medium text-slate-500 uppercase tracking-tight">
                         {edge.label}
-                      </Badge>
+                      </span>
                     </div>
                   )}
 
-                  <NodeTree
-                    nodeId={edge.to}
-                    stepNumber={childStepNumber}
-                    visited={newVisited}
-                    depth={depth + 1}
-                  />
+                  <div className={edge.label ? "mt-4" : "mt-0"}>
+                    <NodeTree
+                      nodeId={edge.target}
+                      stepNumber={childStepNumber}
+                      visited={newVisited}
+                    />
+                  </div>
                 </div>
               );
             })}
@@ -211,36 +250,35 @@ export default function VoysAdminView({ planData }: Props) {
     );
   };
 
-  // Find root node (usually entryPoint)
   const rootNode = nodes.find((n: any) => n.type === "entryPoint") || nodes[0];
 
   return (
-    <Card className="h-full bg-slate-50/50 border-slate-200 shadow-sm overflow-hidden flex flex-col">
+    <Card className="h-full bg-slate-50/50 border-slate-200 shadow-sm flex flex-col">
       <CardHeader className="pb-4 bg-white border-b border-slate-100 flex-none">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium text-slate-700 flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-6 h-6 rounded bg-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
               V
             </div>
-            Voys Freedom Visualizer
+            Admin Route View
           </CardTitle>
-          <Badge variant="outline" className="text-xs">
-            {nodes.length} steps
+          <Badge variant="outline" className="text-xs font-normal">
+            {nodes.length} Modules
           </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 overflow-auto flex-1">
-        <div className="max-w-4xl">
-          {rootNode ? (
+      <CardContent className="p-4 overflow-y-auto flex-1">
+        {rootNode ? (
+          <div className="max-w-3xl mx-auto">
             <NodeTree nodeId={rootNode.id} stepNumber="1" />
-          ) : (
-            <div className="text-center text-slate-400 py-10">
-              <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No dial plan data available</p>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-slate-400">
+            <AlertCircle className="w-10 h-10 mx-auto mb-3 opacity-20" />
+            <p>No dial plan loaded.</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

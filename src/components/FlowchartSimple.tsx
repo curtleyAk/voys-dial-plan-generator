@@ -1,47 +1,73 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import ReactFlow, {
   Controls,
   Background,
   useNodesState,
   useEdgesState,
-  MarkerType,
   Handle,
   Position,
+  Node,
+  Edge,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getLayoutedElements } from "@/lib/layout-utils";
 import {
   Phone,
   Clock,
   Users,
   Mic,
-  ArrowRight,
   GitFork,
   Music,
-  AlertCircle,
+  Filter,
+  User,
+  Voicemail,
 } from "lucide-react";
 
-// --- CUSTOM NODE COMPONENTS ---
-// This makes the nodes look pretty (Card style)
+// --- CUSTOM NODE COMPONENT ---
 const CustomNode = ({ data }: any) => {
-  const Icon = data.icon || ArrowRight;
+  const getIcon = () => {
+    if (data.icon) return data.icon;
+    const l = (data.label || "").toLowerCase();
+    if (l.includes("user") || l.includes("partner")) return User;
+    if (l.includes("group")) return Users;
+    if (l.includes("filter") || l.includes("vip")) return Filter;
+    if (l.includes("time") || l.includes("hour")) return Clock;
+    if (l.includes("music") || l.includes("hold")) return Music;
+    if (l.includes("ivr") || l.includes("menu")) return GitFork;
+    if (l.includes("voice") || l.includes("mail")) return Voicemail;
+    if (l.includes("welcome") || l.includes("announce")) return Mic;
+    return Phone;
+  };
+
+  const Icon = getIcon();
+
   return (
     <div
-      className={`px-4 py-3 shadow-md rounded-md bg-white border-2 min-w-[150px] text-center ${data.borderColor || "border-slate-200"}`}
+      className={`px-4 py-3 shadow-md rounded-md bg-white border-2 min-w-[150px] text-center ${
+        data.active
+          ? "border-blue-500 ring-2 ring-blue-100"
+          : "border-slate-200"
+      }`}
     >
       <Handle
         type="target"
         position={Position.Top}
         className="w-3 h-3 bg-slate-400"
       />
-      <div className="flex flex-col items-center gap-1">
-        <div className={`p-2 rounded-full ${data.bg || "bg-slate-100"}`}>
-          <Icon className={`w-4 h-4 ${data.color || "text-slate-500"}`} />
+      <div className="flex flex-col items-center gap-2">
+        <div className="p-2 rounded-full bg-slate-100">
+          <Icon className="w-5 h-5 text-slate-600" />
         </div>
-        <div className="font-bold text-xs text-slate-700">{data.label}</div>
+        <div>
+          <div className="font-bold text-sm text-slate-800">{data.label}</div>
+          {data.description && (
+            <div className="text-xs text-slate-500 mt-1">
+              {data.description}
+            </div>
+          )}
+        </div>
       </div>
       <Handle
         type="source"
@@ -52,185 +78,66 @@ const CustomNode = ({ data }: any) => {
   );
 };
 
-const nodeTypes = { custom: CustomNode };
+const nodeTypes = {
+  custom: CustomNode,
+  entryPoint: CustomNode,
+  filter: CustomNode,
+  user: CustomNode,
+  musicOnHold: CustomNode,
+  timeCondition: CustomNode,
+  announcement: CustomNode,
+  ivr: CustomNode,
+  variableAnnouncement: CustomNode,
+  callGroup: CustomNode,
+  voicemail: CustomNode,
+};
 
 interface Props {
-  chartCode: string; // We'll ignore this now
+  initialNodes: Node[];
+  initialEdges: Edge[];
   title?: string;
 }
 
-// Helper to parse Mermaid string into React Flow Nodes (Simple Parser)
-// In a real app, we'd use the JSON directly, but this bridges your current setup.
-const parseMermaidToFlow = (code: string) => {
-  const nodes: any[] = [];
-  const edges: any[] = [];
-
-  // Safety check
-  if (!code || code.trim().length === 0) {
-    return {
-      nodes: [
-        {
-          id: "error",
-          type: "custom",
-          data: {
-            label: "No diagram data",
-            icon: AlertCircle,
-            color: "text-slate-400",
-            bg: "bg-slate-50",
-          },
-          position: { x: 250, y: 100 },
-        },
-      ],
-      edges: [],
-    };
-  }
-  const lines = code.split("\n");
-
-  lines.forEach((line) => {
-    // 1. Find Nodes: id["Label"]
-    const nodeMatch = line.match(/(\w+)\["([^"]+)"\]/);
-    if (nodeMatch) {
-      const [_, id, label] = nodeMatch;
-      // Assign icons/colors based on label keywords
-      let icon = ArrowRight;
-      let color = "text-slate-500";
-      let bg = "bg-slate-100";
-      let borderColor = "border-slate-200";
-
-      const l = label.toLowerCase();
-      if (l.includes("call") || l.includes("line")) {
-        icon = Phone;
-        color = "text-blue-500";
-        bg = "bg-blue-50";
-        borderColor = "border-blue-200";
-      }
-      if (l.includes("time") || l.includes("open")) {
-        icon = Clock;
-        color = "text-orange-500";
-        bg = "bg-orange-50";
-        borderColor = "border-orange-200";
-      }
-      if (l.includes("ring") || l.includes("staff")) {
-        icon = Users;
-        color = "text-green-500";
-        bg = "bg-green-50";
-        borderColor = "border-green-200";
-      }
-      if (l.includes("voice") || l.includes("message")) {
-        icon = Mic;
-        color = "text-purple-500";
-        bg = "bg-purple-50";
-        borderColor = "border-purple-200";
-      }
-      if (l.includes("queue")) {
-        icon = Music;
-        color = "text-pink-500";
-        bg = "bg-pink-50";
-        borderColor = "border-pink-200";
-      }
-      if (l.includes("press")) {
-        icon = GitFork;
-        color = "text-indigo-500";
-        bg = "bg-indigo-50";
-        borderColor = "border-indigo-200";
-      }
-
-      if (!nodes.find((n) => n.id === id)) {
-        nodes.push({
-          id,
-          type: "custom",
-          data: { label, icon, color, bg, borderColor },
-          position: { x: 0, y: 0 },
-        });
-      }
-    }
-
-    // 2. Find Edges: id1 --> id2
-    // Also handles labels: id1 -->|"Yes"| id2
-    const edgeMatch = line.match(/(\w+)\s*-->\s*\|?"?([^"|]*)"?\|?\s*(\w+)/);
-    if (edgeMatch) {
-      // If we have a label (3 groups), or just source->target (logic varies)
-      // Simple regex for id --> id
-      const simpleMatch = line.match(/(\w+)\s*-->\s*(\w+)/);
-      if (simpleMatch && !line.includes("|")) {
-        edges.push({
-          id: `e-${simpleMatch[1]}-${simpleMatch[2]}`,
-          source: simpleMatch[1],
-          target: simpleMatch[2],
-          type: "smoothstep",
-          markerEnd: { type: MarkerType.ArrowClosed },
-        });
-      }
-
-      // Labeled edge
-      const labelMatch = line.match(/(\w+)\s*-->\|"([^"]+)"\|\s*(\w+)/);
-      if (labelMatch) {
-        edges.push({
-          id: `e-${labelMatch[1]}-${labelMatch[3]}`,
-          source: labelMatch[1],
-          target: labelMatch[3],
-          label: labelMatch[2],
-          type: "smoothstep",
-          labelStyle: { fill: "#64748b", fontWeight: 700, fontSize: 11 },
-          style: { stroke: "#94a3b8" },
-          markerEnd: { type: MarkerType.ArrowClosed },
-        });
-      }
-    }
-  });
-
-  return { nodes, edges };
-};
-
 export default function FlowchartSimple({
-  chartCode,
-  title = "Call Flow",
+  initialNodes = [],
+  initialEdges = [],
+  title = "Dial Plan Visualizer",
 }: Props) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
-    try {
-      if (!chartCode) {
-        setError(true);
-        return;
-      }
+    if (initialNodes.length > 0) {
+      // FIX: Map over nodes to ensure every node has a 'position' object
+      // We cast node to 'any' to safely access properties like .label that might exist in your mock data
+      // but strictly aren't on the default Node type.
+      const safeNodes = initialNodes.map((node, index) => {
+        const n = node as any;
+        return {
+          ...node,
+          // If position is missing, assign a default cascaded position
+          position: node.position || { x: index * 50, y: index * 80 },
+          data: {
+            ...node.data,
+            // Safely access .label from the raw node object
+            label: node.data?.label || n.label,
+          },
+        };
+      });
 
-      const { nodes: initialNodes, edges: initialEdges } =
-        parseMermaidToFlow(chartCode);
-      const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(initialNodes, initialEdges);
-
-      setNodes(layoutedNodes);
-      setEdges(layoutedEdges);
-      setError(false);
-    } catch (err) {
-      console.error("Flowchart error:", err);
-      setError(true);
+      setNodes(safeNodes);
+      setEdges(initialEdges);
     }
-  }, [chartCode, setNodes, setEdges]);
+  }, [initialNodes, initialEdges, setNodes, setEdges]);
 
-  if (error) {
-    return (
-      <Card className="h-full shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg">{title}</CardTitle>
-        </CardHeader>
-        <CardContent className="min-h-[400px] flex items-center justify-center">
-          <p className="text-slate-500">Unable to load flowchart</p>
-        </CardContent>
-      </Card>
-    );
-  }
   return (
-    <Card className="h-full shadow-sm flex flex-col">
-      <CardHeader className="pb-2 border-b border-slate-100">
+    <Card className="h-full shadow-sm flex flex-col border-slate-200">
+      <CardHeader className="pb-2 border-b border-slate-100 bg-white">
         <CardTitle className="text-lg font-medium text-slate-700">
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 p-0 min-h-[400px] bg-slate-50 relative">
+      <CardContent className="flex-1 p-0 min-h-[500px] bg-slate-50 relative">
         <div className="absolute inset-0">
           <ReactFlow
             nodes={nodes}
@@ -241,8 +148,8 @@ export default function FlowchartSimple({
             fitView
             attributionPosition="bottom-right"
           >
-            <Background color="#e2e8f0" gap={16} />
-            <Controls />
+            <Background color="#cbd5e1" gap={20} size={1} />
+            <Controls className="bg-white border-slate-200 shadow-sm text-slate-600" />
           </ReactFlow>
         </div>
       </CardContent>
