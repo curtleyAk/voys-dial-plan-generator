@@ -99,68 +99,68 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* LEFT COLUMN: Features (3 cols) */}
+            {/* LEFT COLUMN */}
             <div className="lg:col-span-3 space-y-6">
-              <FeatureChecklist features={dialPlanData.features} />
-              {/* NEW COMPONENT HERE */}
-              <VoicePreview scripts={dialPlanData.voiceScripts} />
+              <FeatureChecklist features={dialPlanData?.features || []} />
+              <VoicePreview scripts={dialPlanData?.voiceScripts || []} />
             </div>
 
-            {/* RIGHT COLUMN: Visuals (9 cols) */}
+            {/* RIGHT COLUMN */}
             <div className="lg:col-span-9 space-y-6">
-              {/* Flowcharts */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FlowchartSimple
                   title="Customer View (Simple)"
-                  chartCode={dialPlanData.mermaidSimple}
+                  chartCode={dialPlanData?.mermaidSimple || ""}
                 />
                 <VoysAdminView planData={dialPlanData} />
               </div>
 
-              {/* Implementation Guide */}
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+              {/* Implementation Steps */}
+              <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h2 className="text-xl font-bold mb-6 text-slate-800">
                   Setup Guide
                 </h2>
-                <div className="space-y-0">
-                  {dialPlanData.implementationSteps?.map(
-                    (step: any, idx: number) => (
-                      <div
-                        key={step.step}
-                        className="flex gap-4 pb-8 relative last:pb-0"
-                      >
-                        {/* Timeline Line */}
-                        {idx !==
-                          dialPlanData.implementationSteps.length - 1 && (
-                          <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-slate-200" />
-                        )}
+                {(dialPlanData?.implementationSteps || []).map((step: any) => (
+                  <div className="space-y-0">
+                    {dialPlanData.implementationSteps?.map(
+                      (step: any, idx: number) => (
+                        <div
+                          key={step.step}
+                          className="flex gap-4 pb-8 relative last:pb-0"
+                        >
+                          {/* Timeline Line */}
+                          {idx !==
+                            dialPlanData.implementationSteps.length - 1 && (
+                            <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-slate-200" />
+                          )}
 
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm z-10">
-                          {step.step}
-                        </div>
-                        <div className="pt-1">
-                          <h3 className="font-semibold text-lg text-slate-900">
-                            {step.title}
-                          </h3>
-                          <p className="text-slate-600 mt-1 mb-2">
-                            {step.description}
-                          </p>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs font-medium px-2 py-1 bg-slate-100 rounded text-slate-600">
-                              ⏱ {step.estimatedTime}
-                            </span>
-                            <a
-                              href="#"
-                              className="text-sm text-blue-600 hover:underline"
-                            >
-                              Open Admin Panel →
-                            </a>
+                          <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm z-10">
+                            {step.step}
+                          </div>
+                          <div className="pt-1">
+                            <h3 className="font-semibold text-lg text-slate-900">
+                              {step.title}
+                            </h3>
+                            <p className="text-slate-600 mt-1 mb-2">
+                              {step.description}
+                            </p>
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs font-medium px-2 py-1 bg-slate-100 rounded text-slate-600">
+                                ⏱ {step.estimatedTime}
+                              </span>
+                              <a
+                                href="#"
+                                className="text-sm text-blue-600 hover:underline"
+                              >
+                                Open Admin Panel →
+                              </a>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ),
-                  )}
-                </div>
+                      ),
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>

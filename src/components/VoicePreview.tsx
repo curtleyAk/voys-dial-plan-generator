@@ -17,6 +17,22 @@ interface Props {
 }
 
 export default function VoicePreview({ scripts }: Props) {
+  // Safety check FIRST
+  if (!scripts || scripts.length === 0) {
+    return (
+      <Card className="border-slate-200 shadow-sm bg-slate-50/50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Volume2 className="h-5 w-5 text-blue-600" />
+            Voice Greetings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-slate-500">No voice scripts available</p>
+        </CardContent>
+      </Card>
+    );
+  }
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
   const [audioUrls, setAudioUrls] = useState<Map<number, string>>(new Map());
@@ -158,7 +174,7 @@ export default function VoicePreview({ scripts }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {scripts.map((script, idx) => (
+        {(scripts || []).map((script, idx) => (
           <div
             key={idx}
             className={`p-4 rounded-lg border transition-all ${

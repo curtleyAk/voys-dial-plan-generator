@@ -21,6 +21,7 @@ import {
   ArrowRight,
   GitFork,
   Music,
+  AlertCircle,
 } from "lucide-react";
 
 // --- CUSTOM NODE COMPONENTS ---
@@ -63,6 +64,26 @@ interface Props {
 const parseMermaidToFlow = (code: string) => {
   const nodes: any[] = [];
   const edges: any[] = [];
+
+  // Safety check
+  if (!code || code.trim().length === 0) {
+    return {
+      nodes: [
+        {
+          id: "error",
+          type: "custom",
+          data: {
+            label: "No diagram data",
+            icon: AlertCircle,
+            color: "text-slate-400",
+            bg: "bg-slate-50",
+          },
+          position: { x: 250, y: 100 },
+        },
+      ],
+      edges: [],
+    };
+  }
   const lines = code.split("\n");
 
   lines.forEach((line) => {
@@ -167,22 +188,41 @@ export default function FlowchartSimple({
 }: Props) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    // 1. Parse the dirty Mermaid string into nice Objects
-    const { nodes: initialNodes, edges: initialEdges } =
-      parseMermaidToFlow(chartCode);
+    try {
+      if (!chartCode) {
+        setError(true);
+        return;
+      }
 
-    // 2. Auto-layout them nicely
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      initialNodes,
-      initialEdges,
-    );
+      const { nodes: initialNodes, edges: initialEdges } =
+        parseMermaidToFlow(chartCode);
+      const { nodes: layoutedNodes, edges: layoutedEdges } =
+        getLayoutedElements(initialNodes, initialEdges);
 
-    setNodes(layoutedNodes);
-    setEdges(layoutedEdges);
+      setNodes(layoutedNodes);
+      setEdges(layoutedEdges);
+      setError(false);
+    } catch (err) {
+      console.error("Flowchart error:", err);
+      setError(true);
+    }
   }, [chartCode, setNodes, setEdges]);
 
+  if (error) {
+    return (
+      <Card className="h-full shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg">{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="min-h-[400px] flex items-center justify-center">
+          <p className="text-slate-500">Unable to load flowchart</p>
+        </CardContent>
+      </Card>
+    );
+  }
   return (
     <Card className="h-full shadow-sm flex flex-col">
       <CardHeader className="pb-2 border-b border-slate-100">

@@ -83,6 +83,24 @@ export default function VoysAdminView({ planData }: Props) {
   const nodes = planData?.dialPlan?.nodes || [];
   const edges = planData?.dialPlan?.edges || [];
 
+  // Safety check
+  if (!planData || !planData.dialPlan) {
+    return (
+      <Card className="h-full bg-slate-50/50 border-slate-200 shadow-sm">
+        <CardHeader className="pb-4 bg-white border-b border-slate-100">
+          <CardTitle className="text-lg font-medium text-slate-700 flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+              V
+            </div>
+            Voys Freedom Visualizer
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 flex items-center justify-center">
+          <p className="text-slate-400">No dial plan data available</p>
+        </CardContent>
+      </Card>
+    );
+  }
   // Helper to get node data
   const getNode = (id: string) => nodes.find((n: any) => n.id === id);
 

@@ -61,8 +61,20 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export default function FeatureChecklist({ features }: Props) {
-  const activeFeatures = (features || []).filter((f) => f.used);
-  const inactiveFeatures = (features || []).filter((f) => !f.used);
+  // Safety check FIRST
+  if (!features || features.length === 0) {
+    return (
+      <Card className="h-full border-slate-200 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Active Features</CardTitle>
+          <CardDescription>Loading features...</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  const activeFeatures = features.filter((f) => f.used);
+  const inactiveFeatures = features.filter((f) => !f.used);
 
   // If no features at all, show message
   if (!features || features.length === 0) {
